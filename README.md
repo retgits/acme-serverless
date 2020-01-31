@@ -6,7 +6,7 @@
 
 These instructions will allow you to run entire ACME Serverless Fitness Shop
 
-The ACME Serverless Fitness Shop contains six different domains of service:
+The ACME Serverless Fitness Shop contains seven different domains of service:
 
 * [Shipment](https://github.com/retgits/acme-serverless-shipment)
 * [Payment](https://github.com/retgits/acme-serverless-payment)
@@ -14,6 +14,7 @@ The ACME Serverless Fitness Shop contains six different domains of service:
 * [Cart](https://github.com/retgits/acme-serverless-cart)
 * [Catalog](https://github.com/retgits/acme-serverless-catalog)
 * [User](https://github.com/retgits/acme-serverless-user)
+* [Point-of-Sales](https://github.com/retgits/acme-serverless-pos)
 
 To get started you'll need:
 
@@ -34,6 +35,10 @@ Each of the repositories contains the source code, data structures (if needed), 
 * [Amazon EventBridge](https://aws.amazon.com/eventbridge/): Each of the domains that supports Amazon EventBridge will have instructions and sources how to run the ACME Serverless Fitness Shop using Amazon EventBridge;
 * [Amazon Simple Queue Service](https://aws.amazon.com/sqs/): Each of the domains that supports Amazon Simple Queue Service will have instructions and sources how to run the ACME Serverless Fitness Shop using Amazon Simple Queue Service;
 * [Amazon API Gateway](https://aws.amazon.com/api-gateway/) _(only when there are public APIs available)_
+
+### Hosting
+
+* The Point-of-Sales app can be hosted on [Amazon S3](https://aws.amazon.com/s3).
 
 ## Overview
 
