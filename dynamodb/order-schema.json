@@ -1,0 +1,186 @@
+{
+    "id": 212167,
+    "num_rows": 2,
+    "file_format": "json",
+    "name": "ACME Serverless Fitness Shop :: Order",
+    "array": true,
+    "columns": [
+        {
+            "name": "_id",
+            "null_percentage": 0,
+            "type": "GUID",
+            "formula": ""
+        },
+        {
+            "name": "status",
+            "null_percentage": 0,
+            "type": "Custom List",
+            "values": [
+                "pending payment"
+            ],
+            "selectionStyle": "random",
+            "distribution": null,
+            "formula": ""
+        },
+        {
+            "name": "userid",
+            "null_percentage": 0,
+            "type": "Username",
+            "formula": ""
+        },
+        {
+            "name": "firstname",
+            "null_percentage": 0,
+            "type": "First Name",
+            "formula": ""
+        },
+        {
+            "name": "lastname",
+            "null_percentage": 0,
+            "type": "Last Name",
+            "formula": ""
+        },
+        {
+            "name": "address.street",
+            "null_percentage": 0,
+            "type": "Street Name",
+            "formula": ""
+        },
+        {
+            "name": "address.city",
+            "null_percentage": 0,
+            "type": "City",
+            "formula": ""
+        },
+        {
+            "name": "address.zip",
+            "null_percentage": 0,
+            "type": "Postal Code",
+            "formula": ""
+        },
+        {
+            "name": "address.state",
+            "null_percentage": 0,
+            "type": "State (abbrev)",
+            "onlyUSPlaces": true,
+            "formula": ""
+        },
+        {
+            "name": "address.country",
+            "null_percentage": 0,
+            "type": "Country",
+            "countries": [],
+            "formula": ""
+        },
+        {
+            "name": "email",
+            "null_percentage": 0,
+            "type": "Email Address",
+            "formula": ""
+        },
+        {
+            "name": "delivery",
+            "null_percentage": 0,
+            "type": "Custom List",
+            "values": [
+                "dhl",
+                "fedex",
+                "ontrac",
+                "tractor",
+                "ups",
+                "usps"
+            ],
+            "selectionStyle": "random",
+            "distribution": null,
+            "formula": ""
+        },
+        {
+            "name": "card.Type",
+            "null_percentage": 0,
+            "type": "Credit Card Type",
+            "formula": ""
+        },
+        {
+            "name": "card.Number",
+            "null_percentage": 0,
+            "type": "Credit Card #",
+            "formula": ""
+        },
+        {
+            "name": "card.ExpiryMonth",
+            "null_percentage": 0,
+            "type": "Number",
+            "min": 1,
+            "max": 12,
+            "decimals": 0,
+            "formula": ""
+        },
+        {
+            "name": "card.ExpiryYear",
+            "null_percentage": 0,
+            "type": "Number",
+            "min": 2020,
+            "max": 2022,
+            "decimals": 0,
+            "formula": ""
+        },
+        {
+            "name": "card.CVV",
+            "null_percentage": 0,
+            "type": "Number",
+            "min": 100,
+            "max": 999,
+            "decimals": 0,
+            "formula": "concat(\"\",this, \"\")"
+        },
+        {
+            "name": "cart",
+            "null_percentage": 0,
+            "type": "JSON Array",
+            "minItems": 1,
+            "maxItems": 5,
+            "formula": ""
+        },
+        {
+            "name": "cart.id",
+            "null_percentage": 0,
+            "type": "GUID",
+            "formula": ""
+        },
+        {
+            "name": "cart.description",
+            "null_percentage": 0,
+            "type": "Words",
+            "min": 10,
+            "max": 20,
+            "formula": ""
+        },
+        {
+            "name": "cart.quantity",
+            "null_percentage": 0,
+            "type": "Number",
+            "min": 1,
+            "max": 5,
+            "decimals": 0,
+            "formula": "concat(\"\",this, \"\")"
+        },
+        {
+            "name": "cart.price",
+            "null_percentage": 0,
+            "type": "Number",
+            "min": 1,
+            "max": 10,
+            "decimals": 2,
+            "formula": "concat(\"\",this, \"\")"
+        },
+        {
+            "name": "total",
+            "null_percentage": 0,
+            "type": "Number",
+            "min": 1,
+            "max": 5000,
+            "decimals": 0,
+            "formula": "concat(\"\",this, \"\")"
+        }
+    ]
+}

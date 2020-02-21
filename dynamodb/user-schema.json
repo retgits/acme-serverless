@@ -1,0 +1,45 @@
+{
+    "id": 212182,
+    "num_rows": 1000,
+    "file_format": "json",
+    "name": "ACME Serverless Fitness Shop :: User",
+    "array": true,
+    "columns": [
+        {
+            "name": "id",
+            "null_percentage": 0,
+            "type": "GUID",
+            "formula": ""
+        },
+        {
+            "name": "username",
+            "null_percentage": 0,
+            "type": "First Name",
+            "formula": "lower(this)"
+        },
+        {
+            "name": "password",
+            "null_percentage": 0,
+            "type": "Password",
+            "formula": ""
+        },
+        {
+            "name": "firstname",
+            "null_percentage": 0,
+            "type": "First Name",
+            "formula": ""
+        },
+        {
+            "name": "lastname",
+            "null_percentage": 0,
+            "type": "Last Name",
+            "formula": ""
+        },
+        {
+            "name": "email",
+            "null_percentage": 0,
+            "type": "Email Address",
+            "formula": ""
+        }
+    ]
+}s

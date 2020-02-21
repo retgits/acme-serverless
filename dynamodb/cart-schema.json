@@ -1,0 +1,45 @@
+{
+    "id": 212170,
+    "num_rows": 1000,
+    "file_format": "json",
+    "name": "ACME Serverless Fitness Shop :: Cart",
+    "array": true,
+    "columns": [
+        {
+            "name": "id",
+            "null_percentage": 0,
+            "type": "Row Number",
+            "formula": ""
+        },
+        {
+            "name": "first_name",
+            "null_percentage": 0,
+            "type": "First Name",
+            "formula": ""
+        },
+        {
+            "name": "last_name",
+            "null_percentage": 0,
+            "type": "Last Name",
+            "formula": ""
+        },
+        {
+            "name": "email",
+            "null_percentage": 0,
+            "type": "Email Address",
+            "formula": ""
+        },
+        {
+            "name": "gender",
+            "null_percentage": 0,
+            "type": "Gender",
+            "formula": ""
+        },
+        {
+            "name": "ip_address",
+            "null_percentage": 0,
+            "type": "IP Address v4",
+            "formula": ""
+        }
+    ]
+}
