@@ -28,7 +28,9 @@ Each of the repositories contains the source code, data structures (if needed), 
 
 ### Data Store
 
-* [Amazon DynamoDB](https://aws.amazon.com/dynamodb/): Each of the domains has a [Makefile.dynamodb](./deploy/cloudformation), which you can use to run `make -f Makefile.dynamodb deploy` to create the DynamoDB table.
+* [Amazon DynamoDB](https://aws.amazon.com/dynamodb/): You can use the makefile in the [dynamodb](./dynamodb) folder to create the DynamoDB table. The command you need to run is `make -f Makefile.dynamodb deploy`.
+
+To start your journey off with random data, you can use [`main.go`](./dynamodb/main.go). Running that program will add the default generated data (in the various `data.json` files) into Amazon DynamoDB. To generate your own data, you can use [Mockaroo](https://www.mockaroo.com/) and import the `schema.json` files to start off.
 
 ### Eventing
 

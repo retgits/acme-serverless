@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+## A text string that describes the template.
+Description: >
+  The User service is part of the ACME Fitness Serverless Shop. The goal of this specific service is to register and authenticate users using JWT tokens.
+
+## Values to pass to your template at runtime (when you create or update a stack).
+Parameters:
+  Version:
+    Type: String
+  Author:
+    Type: String
+  Team:
+    Type: String
+  Feature:
+    Type: String
+    Default: acmeserverless
+  Stage:
+    Type: String
+    Default: dev
+
+## Specifies the stack resources and their properties.
+Resources:
+  ACMEServerless: 
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - AttributeName: "PK"
+          AttributeType: "S"
+        - AttributeName: "SK"
+          AttributeType: "S"
+      KeySchema: 
+        - AttributeName: "PK"
+          KeyType: "HASH"
+        - AttributeName: "SK"
+          KeyType: "RANGE"
+      ProvisionedThroughput: 
+        ReadCapacityUnits: "20"
+        WriteCapacityUnits: "20"
+      TableName: !Sub "${Feature}-${Stage}"
+
+## Describes the values that are returned whenever you view your stack's properties.
+Outputs:
+  UserTableARN:
+    Description: ARN for the DynamoDB Table
+    Value: !GetAtt ACMEServerless.Arn
