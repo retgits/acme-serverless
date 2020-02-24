@@ -21,6 +21,7 @@ To get started you'll need:
 * [Go (at least Go 1.12)](https://golang.org/dl/);
 * [An AWS Account](https://portal.aws.amazon.com/billing/signup);
 * The _vuln_ targets for Make and Mage rely on the [Snyk](http://snyk.io/) CLI.
+* The services use [Sentry.io](https://sentry.io) for tracing and error reporting
 
 Each of the repositories contains the source code, data structures (if needed), and deployment scripts to deploy the different domains to AWS.
 
