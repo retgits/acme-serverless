@@ -39,6 +39,47 @@ To start your journey off with random data, you can use the [`Makefile.dynamodb`
 * [Amazon Simple Queue Service](https://aws.amazon.com/sqs/): Each of the domains that supports Amazon Simple Queue Service will have instructions and sources how to run the ACME Serverless Fitness Shop using Amazon Simple Queue Service;
 * [Amazon API Gateway](https://aws.amazon.com/api-gateway/) _(only when there are public APIs available)_
 
+#### Testing EventBridge
+
+You can test the function from the [AWS Lambda Console](https://console.aws.amazon.com/lambda/home) using the test data from the files in [eventbridge](./eventbridge/). To send a message to the event bus, you can use the Go app in `./eventbridge` and run
+
+```bash
+go run main.go -event=<any of the files existing in the folder of the specific service> -location=<location on disk of the eventbridge folder> -bus=<name of the custom bus> -service=<name of the service>
+```
+
+#### Testing SQS
+
+To send a message to an SQS queue using the test data from the files in [sqs](./sqs/), you can use the Go app in `./sqs` and run
+
+```bash
+go run main.go -event=<any of the files existing in the folder of the specific service> -location=<location on disk of the sqs folder> -queue=<url of the sqs queue> -service=<name of the service>
+```
+
+If you want to test from the [AWS Lambda Console](https://console.aws.amazon.com/lambda/home), you'll have to wrap the test data in a SQS record envelop:
+
+```json
+{
+  "Records": [
+    {
+      "messageId": "19dd0b57-b21e-4ac1-bd88-01bbb068cb78",
+      "receiptHandle": "MessageReceiptHandle",
+      "body": "", // This is where the data, an escaped JSON string, should be pasted
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "123456789012",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "7b270e59b47ff90a553787216d55d91d",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-east-1:123456789012:MyQueue",
+      "awsRegion": "us-east-1"
+    }
+  ]
+}
+```
+
 ### Hosting
 
 * The Point-of-Sales app can be hosted on [Amazon S3](https://aws.amazon.com/s3).

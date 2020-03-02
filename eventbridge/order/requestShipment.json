@@ -1,0 +1,15 @@
+{
+    "metadata": {
+        "domain": "Payment",
+        "source": "CLI",
+        "type": "CreditCardValidated",
+        "status": "success"
+    },
+    "data": {
+        "success": "true",
+        "status": 200,
+        "message": "transaction successful",
+        "amount": 123,
+        "transactionID": "3f846704-af12-4ea9-a98c-8d7b37e10b54"
+    }
+}

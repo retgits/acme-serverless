@@ -1,0 +1,13 @@
+{
+    "metadata": {
+        "domain": "Shipment",
+        "source": "CLI",
+        "type": "SentShipment",
+        "status": "success"
+    },
+    "data": {
+        "trackingNumber": "6bc3b96b-19e9-42d3-bff8-91a2c431d1d6",
+        "orderNumber": "12345",
+        "status": "shipped - pending delivery"
+    }
+}

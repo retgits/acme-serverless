@@ -1,0 +1,19 @@
+{
+    "metadata": {
+        "domain": "Order",
+        "source": "CLI",
+        "type": "PaymentRequested",
+        "status": "success"
+    },
+    "data": {
+        "orderID": "12345",
+        "card": {
+            "Type": "Visa",
+            "Number": "4222222222222",
+            "ExpiryYear": 2022,
+            "ExpiryMonth": 12,
+            "CVV": "123"
+        },
+        "total": "123"
+    }
+}
