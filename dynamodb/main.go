@@ -2,29 +2,207 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/gofrs/uuid"
+
 	cart "github.com/retgits/acme-serverless-cart"
-	cartDB "github.com/retgits/acme-serverless-cart/internal/datastore/dynamodb"
 	catalog "github.com/retgits/acme-serverless-catalog"
-	catalogDB "github.com/retgits/acme-serverless-catalog/internal/datastore/dynamodb"
 	order "github.com/retgits/acme-serverless-order"
-	orderDB "github.com/retgits/acme-serverless-order/internal/datastore/dynamodb"
 	user "github.com/retgits/acme-serverless-user"
-	userDB "github.com/retgits/acme-serverless-user/internal/datastore/dynamodb"
 )
 
 const (
 	region = "us-west-2"
-	table  = "acmeserverless"
+	table  = "acmeserverless-dev"
 )
 
-func main() {
+// Create a single instance of the dynamoDB service
+// which can be reused if the container stays warm
+var dbs *dynamodb.DynamoDB
+
+// init creates the connection to dynamoDB. If the environment variable
+// DYNAMO_URL is set, the connection is made to that URL instead of
+// relying on the AWS SDK to provide the URL
+func init() {
 	os.Setenv("REGION", region)
 	os.Setenv("TABLE", table)
 
+	awsSession := session.Must(session.NewSession(&aws.Config{
+		Region: aws.String(os.Getenv("REGION")),
+	}))
+
+	if len(os.Getenv("DYNAMO_URL")) > 0 {
+		awsSession.Config.Endpoint = aws.String(os.Getenv("DYNAMO_URL"))
+	}
+
+	dbs = dynamodb.New(awsSession)
+}
+
+// AddUser stores a new user in Amazon DynamoDB
+func AddUser(usr user.User) error {
+	// Create a JSON encoded string of the user
+	payload, err := usr.Marshal()
+	if err != nil {
+		return err
+	}
+
+	// Create a map of DynamoDB Attribute Values containing the table keys
+	km := make(map[string]*dynamodb.AttributeValue)
+	km["PK"] = &dynamodb.AttributeValue{
+		S: aws.String("USER"),
+	}
+	km["SK"] = &dynamodb.AttributeValue{
+		S: aws.String(usr.ID),
+	}
+
+	// Create a map of DynamoDB Attribute Values containing the table data elements
+	em := make(map[string]*dynamodb.AttributeValue)
+	em[":keyid"] = &dynamodb.AttributeValue{
+		S: aws.String(usr.Username),
+	}
+	em[":payload"] = &dynamodb.AttributeValue{
+		S: aws.String(payload),
+	}
+
+	uii := &dynamodb.UpdateItemInput{
+		TableName:                 aws.String(os.Getenv("TABLE")),
+		Key:                       km,
+		ExpressionAttributeValues: em,
+		UpdateExpression:          aws.String("SET Payload = :payload, KeyID = :keyid"),
+	}
+
+	_, err = dbs.UpdateItem(uii)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AddProduct stores a new product in Amazon DynamoDB
+func AddProduct(p catalog.Product) error {
+	// Marshal the newly updated product struct
+	payload, err := p.Marshal()
+	if err != nil {
+		return err
+	}
+
+	// Create a map of DynamoDB Attribute Values containing the table keys
+	km := make(map[string]*dynamodb.AttributeValue)
+	km["PK"] = &dynamodb.AttributeValue{
+		S: aws.String("PRODUCT"),
+	}
+	km["SK"] = &dynamodb.AttributeValue{
+		S: aws.String(p.ID),
+	}
+
+	// Create a map of DynamoDB Attribute Values containing the table data elements
+	em := make(map[string]*dynamodb.AttributeValue)
+	em[":payload"] = &dynamodb.AttributeValue{
+		S: aws.String(payload),
+	}
+
+	uii := &dynamodb.UpdateItemInput{
+		TableName:                 aws.String(os.Getenv("TABLE")),
+		Key:                       km,
+		ExpressionAttributeValues: em,
+		UpdateExpression:          aws.String("SET Payload = :payload"),
+	}
+
+	_, err = dbs.UpdateItem(uii)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AddOrder stores a new order in Amazon DynamoDB
+func AddOrder(o order.Order) (order.Order, error) {
+	// Generate and assign a new orderID
+	o.OrderID = uuid.Must(uuid.NewV4()).String()
+	o.Status = aws.String("Pending Payment")
+
+	// Marshal the newly updated product struct
+	payload, err := o.Marshal()
+	if err != nil {
+		return o, fmt.Errorf("error marshalling order: %s", err.Error())
+	}
+
+	// Create a map of DynamoDB Attribute Values containing the table keys
+	km := make(map[string]*dynamodb.AttributeValue)
+	km["PK"] = &dynamodb.AttributeValue{
+		S: aws.String("ORDER"),
+	}
+	km["SK"] = &dynamodb.AttributeValue{
+		S: aws.String(o.OrderID),
+	}
+
+	// Create a map of DynamoDB Attribute Values containing the table data elements
+	em := make(map[string]*dynamodb.AttributeValue)
+	em[":keyid"] = &dynamodb.AttributeValue{
+		S: aws.String(o.UserID),
+	}
+	em[":payload"] = &dynamodb.AttributeValue{
+		S: aws.String(payload),
+	}
+
+	uii := &dynamodb.UpdateItemInput{
+		TableName:                 aws.String(os.Getenv("TABLE")),
+		Key:                       km,
+		ExpressionAttributeValues: em,
+		UpdateExpression:          aws.String("SET Payload = :payload, KeyID = :keyid"),
+	}
+
+	_, err = dbs.UpdateItem(uii)
+	if err != nil {
+		return o, fmt.Errorf("error updating dynamodb: %s", err.Error())
+	}
+
+	return o, nil
+}
+
+// StoreItems saves the cart items from a single user into Amazon DynamoDB
+func StoreItems(userID string, i cart.Items) error {
+	payload, err := i.Marshal()
+	if err != nil {
+		return err
+	}
+
+	// Create a map of DynamoDB Attribute Values containing the table keys
+	// for the access pattern PK = CART SK = ID
+	km := make(map[string]*dynamodb.AttributeValue)
+	km["PK"] = &dynamodb.AttributeValue{
+		S: aws.String("CART"),
+	}
+	km["SK"] = &dynamodb.AttributeValue{
+		S: aws.String(userID),
+	}
+
+	em := make(map[string]*dynamodb.AttributeValue)
+	em[":payload"] = &dynamodb.AttributeValue{
+		S: aws.String(string(payload)),
+	}
+
+	uii := &dynamodb.UpdateItemInput{
+		TableName:                 aws.String(os.Getenv("TABLE")),
+		Key:                       km,
+		ExpressionAttributeValues: em,
+		UpdateExpression:          aws.String("SET Payload = :payload"),
+	}
+
+	_, err = dbs.UpdateItem(uii)
+	return err
+}
+
+func main() {
 	data, err := ioutil.ReadFile("./user-data.json")
 	if err != nil {
 		log.Println(err)
@@ -37,10 +215,8 @@ func main() {
 		log.Println(err)
 	}
 
-	userdb := userDB.New()
-
 	for _, usr := range users {
-		err = userdb.AddUser(usr)
+		err = AddUser(usr)
 		if err != nil {
 			log.Println(err)
 		}
@@ -58,10 +234,8 @@ func main() {
 		log.Println(err)
 	}
 
-	catalogdb := catalogDB.New()
-
 	for _, product := range products {
-		err = catalogdb.AddProduct(product)
+		err = AddProduct(product)
 		if err != nil {
 			log.Println(err)
 		}
@@ -79,10 +253,8 @@ func main() {
 		log.Println(err)
 	}
 
-	orderdb := orderDB.New()
-
 	for _, ord := range orders {
-		ord, err = orderdb.AddOrder(ord)
+		ord, err = AddOrder(ord)
 		if err != nil {
 			log.Println(err)
 		}
@@ -100,10 +272,8 @@ func main() {
 		log.Println(err)
 	}
 
-	cartdb := cartDB.New()
-
-	for _, crt := range cartdb {
-		err = dynamoStore.StoreItems(crt.Userid, crt.Items)
+	for _, crt := range carts {
+		err = StoreItems(crt.Userid, crt.Items)
 		if err != nil {
 			log.Println(err)
 		}
