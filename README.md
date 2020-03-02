@@ -23,8 +23,6 @@ To get started you'll need:
 * The _vuln_ targets for Make and Mage rely on the [Snyk](http://snyk.io/) CLI.
 * The services use [Sentry.io](https://sentry.io) for tracing and error reporting
 
-Each of the repositories contains the source code, data structures (if needed), and deployment scripts to deploy the different domains to AWS.
-
 ## Supported AWS Services
 
 ### Data Store
@@ -39,7 +37,41 @@ To start your journey off with random data, you can use the [`Makefile.dynamodb`
 * [Amazon Simple Queue Service](https://aws.amazon.com/sqs/): Each of the domains that supports Amazon Simple Queue Service will have instructions and sources how to run the ACME Serverless Fitness Shop using Amazon Simple Queue Service;
 * [Amazon API Gateway](https://aws.amazon.com/api-gateway/) _(only when there are public APIs available)_
 
-#### Testing EventBridge
+#### Prerequisites for EventBridge
+
+* [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) installed and configured
+* [Custom EventBus](https://docs.aws.amazon.com/eventbridge/latest/userguide/create-event-bus.html) configured, the name of the configured event bus should be set as the `feature` parameter in the `template.yaml` file of the service you want to deploy.
+
+#### Build and deploy for EventBridge
+
+Clone this repository
+
+```bash
+git clone https://github.com/retgits/acme-serverless
+cd acme-serverless
+```
+
+Change directories to the [deploy/cloudformation](./deploy/cloudformation) folder of the service you want to deploy
+
+```bash
+cd ./deploy/cloudformation/<service>
+## like cd ./deploy/cloudformation/payment
+```
+
+Download the sources of the service you want to deploy
+
+```bash
+make -f Makefile.lambda get
+```
+
+If your event bus is not called _acmeserverless_, update the name of the `feature` parameter in the `template.yaml` file. Now you can build and deploy the Lambda function:
+
+```bash
+make -f Makefile.lambda build TYPE=eventbridge
+make -f Makefile.lambda deploy TYPE=eventbridge
+```
+
+#### Testing with EventBridge
 
 You can test the function from the [AWS Lambda Console](https://console.aws.amazon.com/lambda/home) using the test data from the files in [eventbridge](./eventbridge/). To send a message to the event bus, you can use the Go app in `./eventbridge` and run
 
@@ -47,7 +79,40 @@ You can test the function from the [AWS Lambda Console](https://console.aws.amaz
 go run main.go -event=<any of the files existing in the folder of the specific service> -location=<location on disk of the eventbridge folder> -bus=<name of the custom bus> -service=<name of the service>
 ```
 
-#### Testing SQS
+#### Prerequisites for SQS
+
+* [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) installed and configured
+
+#### Build and deploy for SQS
+
+Clone this repository
+
+```bash
+git clone https://github.com/retgits/acme-serverless
+cd acme-serverless
+```
+
+Change directories to the [deploy/cloudformation](./deploy/cloudformation) folder of the service you want to deploy
+
+```bash
+cd ./deploy/cloudformation/<service>
+## like cd ./deploy/cloudformation/payment
+```
+
+Download the sources of the service you want to deploy
+
+```bash
+make -f Makefile.lambda get
+```
+
+Now you can build and deploy the Lambda function:
+
+```bash
+make -f Makefile.lambda build TYPE=sqs
+make -f Makefile.lambda deploy TYPE=sqs
+```
+
+#### Testing with SQS
 
 To send a message to an SQS queue using the test data from the files in [sqs](./sqs/), you can use the Go app in `./sqs` and run
 

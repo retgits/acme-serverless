@@ -1,0 +1,138 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+## A text string that describes the template.
+Description: >
+  The Payment service is part of the ACME Fitness Serverless Shop. The goal of this specific service is to validate credit card payments.
+
+## Values to pass to your template at runtime (when you create or update a stack).
+Parameters:
+  Version:
+    Type: String
+  Author:
+    Type: String
+  Team:
+    Type: String
+  Feature:
+    Type: String
+    Default: acmeserverless
+  Stage:
+    Type: String
+    Default: dev
+  SentryDSN:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /Sentry/Dsn
+
+## Specifies the stack resources and their properties.
+Resources:
+  PaymentRequestQueue:
+    Type: AWS::SQS::Queue
+    Properties: 
+      MessageRetentionPeriod: 120
+      QueueName: !Sub '${Stage}-${Feature}-payment-request'
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt PaymentErrorQueue.Arn
+        maxReceiveCount: 1
+      Tags: 
+        - Key: version
+          Value: !Ref Version
+        - Key: author
+          Value: !Ref Author
+        - Key: team
+          Value: !Ref Team
+        - Key: feature
+          Value: !Ref Feature
+        - Key: region
+          Value: !Ref AWS::Region
+      VisibilityTimeout: 30
+  PaymentResponseQueue:
+    Type: AWS::SQS::Queue
+    Properties: 
+      MessageRetentionPeriod: 120
+      QueueName: !Sub '${Stage}-${Feature}-payment-response'
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt PaymentErrorQueue.Arn
+        maxReceiveCount: 1
+      Tags: 
+        - Key: version
+          Value: !Ref Version
+        - Key: author
+          Value: !Ref Author
+        - Key: team
+          Value: !Ref Team
+        - Key: feature
+          Value: !Ref Feature
+        - Key: region
+          Value: !Ref AWS::Region
+      VisibilityTimeout: 30
+  PaymentErrorQueue:
+    Type: AWS::SQS::Queue
+    Properties: 
+      MessageRetentionPeriod: 120
+      QueueName: !Sub '${Stage}-${Feature}-payment-error'
+      Tags: 
+        - Key: version
+          Value: !Ref Version
+        - Key: author
+          Value: !Ref Author
+        - Key: team
+          Value: !Ref Team
+        - Key: feature
+          Value: !Ref Feature
+        - Key: region
+          Value: !Ref AWS::Region
+      VisibilityTimeout: 30
+  Payment:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda-payment-sqs
+      Runtime: go1.x
+      CodeUri: bin/
+      FunctionName: !Sub "Payment-${Stage}"
+      Description: A Lambda function to validate creditcard payments
+      MemorySize: 256
+      Timeout: 10
+      Tracing: Active
+      Policies:
+        - AWSLambdaRole
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt PaymentResponseQueue.QueueName
+      Environment:
+        Variables:
+          REGION: !Ref AWS::Region
+          RESPONSEQUEUE: !Ref PaymentResponseQueue
+          SENTRY_DSN: !Ref SentryDSN
+          FUNCTION_NAME: Payment
+          VERSION: !Ref Version
+          STAGE: !Ref Stage
+      Events:
+        ValidateCreditcard:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt PaymentRequestQueue.Arn
+            BatchSize: 1
+            Enabled: true
+      Tags:
+        version: !Ref Version
+        author: !Ref Author
+        team: !Ref Team
+        feature: !Ref Feature
+        region: !Ref AWS::Region
+      VersionDescription: !Ref Version
+  PaymentLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    DependsOn: "Payment"
+    Properties: 
+      RetentionInDays: 1
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref Payment]]
+
+Outputs:
+  PaymentARN:
+    Description: ARN for the Payment function
+    Value: !GetAtt Payment.Arn
+  PaymentRequestQueueARN:
+    Description: ARN for the Payment Request Queue
+    Value: !GetAtt PaymentRequestQueue.Arn
+  PaymentResponseQueueARN:
+    Description: ARN for the Payment Response Queue
+    Value: !GetAtt PaymentResponseQueue.Arn

@@ -1,0 +1,281 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+## A text string that describes the template.
+Description: >
+  The User service is part of the ACME Fitness Serverless Shop. The goal of this specific service is to register and authenticate users using JWT tokens.
+
+## Values to pass to your template at runtime (when you create or update a stack).
+Parameters:
+  Version:
+    Type: String
+  Author:
+    Type: String
+  Team:
+    Type: String
+  Feature:
+    Type: String
+    Default: acmeserverless
+  Stage:
+    Type: String
+    Default: dev
+  SentryDSN:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /Sentry/Dsn
+
+## Specifies properties that are common to all your serverless functions, APIs, and simple tables.
+Globals:
+  Function:
+    Environment:
+      Variables:
+        TABLE: !Sub "${Feature}-${Stage}"
+        REGION: !Ref AWS::Region
+        # DYNAMO_URL: http://host.docker.internal:8000 ## Uncomment this property to be able to test locally using DynamoDB local 
+        VERSION: !Ref Version
+        STAGE: !Ref Stage
+        SENTRY_DSN: !Ref SentryDSN
+  Api:
+    Cors:
+      AllowOrigin: "'*'"
+
+## Specifies the stack resources and their properties.
+Resources:
+  AllUsers:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda-user-all
+      Runtime: go1.x
+      CodeUri: bin/
+      FunctionName: !Sub "AllUsers-${Stage}"
+      Description: A Lambda function to get all users from DynamoDB
+      MemorySize: 256
+      Timeout: 10
+      Tracing: Active
+      Policies:
+        - AWSLambdaRole
+        - DynamoDBCrudPolicy:
+            TableName: !Sub "${Feature}-${Stage}"
+      Environment:
+        Variables:
+          FUNCTION_NAME: AllUsers
+      Events:
+        AllUsersAPI:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: GET
+      Tags:
+        version: !Ref Version
+        author: !Ref Author
+        team: !Ref Team
+        feature: !Ref Feature
+        region: !Ref AWS::Region
+      VersionDescription: !Ref Version
+  AllUsersLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    DependsOn: "AllUsers"
+    Properties: 
+      RetentionInDays: 1
+      LogGroupName: !Join ["", ["/aws/lambda/user/", !Ref AllUsers]]
+  GetUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda-user-get
+      Runtime: go1.x
+      CodeUri: bin/
+      FunctionName: !Sub "GetUser-${Stage}"
+      Description: A Lambda function to get a user from DynamoDB
+      MemorySize: 256
+      Timeout: 10
+      Tracing: Active
+      Policies:
+        - AWSLambdaRole
+        - DynamoDBCrudPolicy:
+            TableName: !Sub "${Feature}-${Stage}"
+      Environment:
+        Variables:
+          FUNCTION_NAME: GetUsers
+      Events:
+        GetUserAPI:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: GET
+      Tags:
+        version: !Ref Version
+        author: !Ref Author
+        team: !Ref Team
+        feature: !Ref Feature
+        region: !Ref AWS::Region
+      VersionDescription: !Ref Version
+  GetUserLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    DependsOn: "GetUser"
+    Properties: 
+      RetentionInDays: 1
+      LogGroupName: !Join ["", ["/aws/lambda/user/", !Ref GetUser]]
+  Login:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda-user-login
+      Runtime: go1.x
+      CodeUri: bin/
+      FunctionName: !Sub "Login-${Stage}"
+      Description: A Lambda function to login
+      MemorySize: 256
+      Timeout: 10
+      Tracing: Active
+      Policies:
+        - AWSLambdaRole
+        - DynamoDBCrudPolicy:
+            TableName: !Sub "${Feature}-${Stage}"
+      Environment:
+        Variables:
+          FUNCTION_NAME: Login
+      Events:
+        LoginAPI:
+          Type: Api
+          Properties:
+            Path: /login
+            Method: POST
+      Tags:
+        version: !Ref Version
+        author: !Ref Author
+        team: !Ref Team
+        feature: !Ref Feature
+        region: !Ref AWS::Region
+      VersionDescription: !Ref Version
+  LoginLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    DependsOn: "Login"
+    Properties: 
+      RetentionInDays: 1
+      LogGroupName: !Join ["", ["/aws/lambda/user/", !Ref Login]]
+  RefreshToken:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda-user-refreshtoken
+      Runtime: go1.x
+      CodeUri: bin/
+      FunctionName: !Sub "RefreshToken-${Stage}"
+      Description: A Lambda function to refresh a JWT token
+      MemorySize: 256
+      Timeout: 10
+      Tracing: Active
+      Policies:
+        - AWSLambdaRole
+      Environment:
+        Variables:
+          FUNCTION_NAME: RefreshToken
+      Events:
+        RefreshTokenAPI:
+          Type: Api
+          Properties:
+            Path: /refresh-token
+            Method: POST
+      Tags:
+        version: !Ref Version
+        author: !Ref Author
+        team: !Ref Team
+        feature: !Ref Feature
+        region: !Ref AWS::Region
+      VersionDescription: !Ref Version
+  RefreshTokenLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    DependsOn: "RefreshToken"
+    Properties: 
+      RetentionInDays: 1
+      LogGroupName: !Join ["", ["/aws/lambda/user/", !Ref RefreshToken]]
+  Register:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda-user-register
+      Runtime: go1.x
+      CodeUri: bin/
+      FunctionName: !Sub "Register-${Stage}"
+      Description: A Lambda function to register new users in DynamoDB
+      MemorySize: 256
+      Timeout: 10
+      Tracing: Active
+      Policies:
+        - AWSLambdaRole
+        - DynamoDBCrudPolicy:
+            TableName: !Sub "${Feature}-${Stage}"
+      Environment:
+        Variables:
+          FUNCTION_NAME: Register
+      Events:
+        RegisterAPI:
+          Type: Api
+          Properties:
+            Path: /register
+            Method: POST
+      Tags:
+        version: !Ref Version
+        author: !Ref Author
+        team: !Ref Team
+        feature: !Ref Feature
+        region: !Ref AWS::Region
+      VersionDescription: !Ref Version
+  RegisterLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    DependsOn: "Register"
+    Properties: 
+      RetentionInDays: 1
+      LogGroupName: !Join ["", ["/aws/lambda/user/", !Ref Register]]
+  VerifyToken:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda-user-verifytoken
+      Runtime: go1.x
+      CodeUri: bin/
+      FunctionName: !Sub "VerifyToken-${Stage}"
+      Description: A Lambda function to verify a JWT token
+      MemorySize: 256
+      Timeout: 10
+      Tracing: Active
+      Policies:
+        - AWSLambdaRole
+      Environment:
+        Variables:
+          FUNCTION_NAME: VerifyToken
+      Events:
+        VerifyTokenAPI:
+          Type: Api
+          Properties:
+            Path: /verify-token
+            Method: POST
+      Tags:
+        version: !Ref Version
+        author: !Ref Author
+        team: !Ref Team
+        feature: !Ref Feature
+        region: !Ref AWS::Region
+      VersionDescription: !Ref Version
+  VerifyTokenLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    DependsOn: "VerifyToken"
+    Properties: 
+      RetentionInDays: 1
+      LogGroupName: !Join ["", ["/aws/lambda/user/", !Ref VerifyToken]]
+
+## Describes the values that are returned whenever you view your stack's properties.
+Outputs:
+  AllUsersURL:
+    Description: "API Gateway endpoint URL to get all users"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/users/"
+  GetUserURL:
+    Description: "API Gateway endpoint URL to get a user"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/users/{id}"
+  LoginURL:
+    Description: "API Gateway endpoint URL to login"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/login/"
+  RefreshTokenURL:
+    Description: "API Gateway endpoint URL to refresh the token"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/refresh-token/"
+  RegisterURL:
+    Description: "API Gateway endpoint URL to register users"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/register/"
+  VerifyTokenURL:
+    Description: "API Gateway endpoint URL to verify the token"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/verify-token/"
