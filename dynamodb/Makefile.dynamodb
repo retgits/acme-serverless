@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Description: Makefile
 # Author(s): retgits <https://github.com/retgits/>
-# Last updated: 2020-01-22
+# Last updated: 2020-03-02
 # 
 # This software may be modified and distributed under the terms of the
 # MIT license. See the LICENSE file for details.
@@ -19,6 +19,9 @@ author          := retgits
 ## The name of the team
 team			:= vcs
 
+## The region to deploy to
+region			:= us-west-2
+
 ## The version of the project, either uses the current commit hash, or will default to "dev"
 version       	:= $(strip $(if $(shell git describe --tags --always --dirty="-dev"),$(shell git describe --tags --always --dirty="-dev"),dev))
 
@@ -26,8 +29,8 @@ version       	:= $(strip $(if $(shell git describe --tags --always --dirty="-de
 aws_bucket    	?= $$AWS_S3_BUCKET
 
 # Suppress checking files and all Make output
-.PHONY: help clean deploy destroy
-.SILENT: help clean deploy destroy
+.PHONY: help clean seed deploy destroy
+.SILENT: help clean seed deploy destroy
 
 # Targets
 help: ## Displays the help for each target (this message)
@@ -41,6 +44,11 @@ help: ## Displays the help for each target (this message)
 clean: ## Remove all generated files
 	echo
 	-rm dynamodb-packaged.yaml
+	echo
+
+seed: ## Add seed data to Amazon DynamoDB
+	echo
+	go run main.go -region=$(region) -table=$(project_name)-$(stage)
 	echo
 
 deploy: ## Deploy the table to Amazon DynamoDB

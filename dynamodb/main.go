@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -18,31 +18,31 @@ import (
 	user "github.com/retgits/acme-serverless-user"
 )
 
-const (
-	region = "us-west-2"
-	table  = "acmeserverless-dev"
+var (
+	region    string
+	table     string
+	dynamoURL string
 )
 
 // Create a single instance of the dynamoDB service
 // which can be reused if the container stays warm
 var dbs *dynamodb.DynamoDB
 
-// init creates the connection to dynamoDB. If the environment variable
-// DYNAMO_URL is set, the connection is made to that URL instead of
-// relying on the AWS SDK to provide the URL
-func init() {
-	os.Setenv("REGION", region)
-	os.Setenv("TABLE", table)
-
+// initialize creates the connection to dynamoDB. If the environment
+// variable DYNAMO_URL is set, the connection is made to that URL
+// instead of relying on the AWS SDK to provide the URL
+func initialize() {
 	awsSession := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(os.Getenv("REGION")),
+		Region: aws.String(region),
 	}))
 
-	if len(os.Getenv("DYNAMO_URL")) > 0 {
-		awsSession.Config.Endpoint = aws.String(os.Getenv("DYNAMO_URL"))
+	if len(dynamoURL) > 0 {
+		awsSession.Config.Endpoint = aws.String(dynamoURL)
 	}
 
 	dbs = dynamodb.New(awsSession)
+
+	return
 }
 
 // AddUser stores a new user in Amazon DynamoDB
@@ -72,7 +72,7 @@ func AddUser(usr user.User) error {
 	}
 
 	uii := &dynamodb.UpdateItemInput{
-		TableName:                 aws.String(os.Getenv("TABLE")),
+		TableName:                 aws.String(table),
 		Key:                       km,
 		ExpressionAttributeValues: em,
 		UpdateExpression:          aws.String("SET Payload = :payload, KeyID = :keyid"),
@@ -110,7 +110,7 @@ func AddProduct(p catalog.Product) error {
 	}
 
 	uii := &dynamodb.UpdateItemInput{
-		TableName:                 aws.String(os.Getenv("TABLE")),
+		TableName:                 aws.String(table),
 		Key:                       km,
 		ExpressionAttributeValues: em,
 		UpdateExpression:          aws.String("SET Payload = :payload"),
@@ -155,7 +155,7 @@ func AddOrder(o order.Order) (order.Order, error) {
 	}
 
 	uii := &dynamodb.UpdateItemInput{
-		TableName:                 aws.String(os.Getenv("TABLE")),
+		TableName:                 aws.String(table),
 		Key:                       km,
 		ExpressionAttributeValues: em,
 		UpdateExpression:          aws.String("SET Payload = :payload, KeyID = :keyid"),
@@ -192,7 +192,7 @@ func StoreItems(userID string, i cart.Items) error {
 	}
 
 	uii := &dynamodb.UpdateItemInput{
-		TableName:                 aws.String(os.Getenv("TABLE")),
+		TableName:                 aws.String(table),
 		Key:                       km,
 		ExpressionAttributeValues: em,
 		UpdateExpression:          aws.String("SET Payload = :payload"),
@@ -203,6 +203,22 @@ func StoreItems(userID string, i cart.Items) error {
 }
 
 func main() {
+	flag.StringVar(&region, "region", "", "The region to send requests to (required)")
+	flag.StringVar(&table, "table", "", "The Amazon DynamoDB table to use (required)")
+	flag.StringVar(&dynamoURL, "db", "", "An optional endpoint URL (optional, hostname only or fully qualified URI)")
+	flag.Parse()
+
+	// Make sure region and table are set
+	if len(region) < 1 {
+		log.Fatal("Error: the 'region' flag must be set")
+	}
+
+	if len(table) < 1 {
+		log.Fatal("Error: the 'table' flag must be set")
+	}
+
+	initialize()
+
 	data, err := ioutil.ReadFile("./user-data.json")
 	if err != nil {
 		log.Println(err)
