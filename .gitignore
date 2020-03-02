@@ -46,3 +46,12 @@ vendor/
 
 # AWS Lambda
 *packaged.yaml
+
+# Git submodules
+deploy/cloudformation/cart/acme-serverless-cart
+deploy/cloudformation/catalog/acme-serverless-catalog
+deploy/cloudformation/order/acme-serverless-order
+deploy/cloudformation/payment/acme-serverless-payment
+deploy/cloudformation/pos/acme-serverless-pos
+deploy/cloudformation/shipment/acme-serverless-shipment
+deploy/cloudformation/user/acme-serverless-user
