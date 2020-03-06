@@ -1,0 +1,3 @@
+name: acmeserverless-sqs
+runtime: go
+description: The ACME Serverless Fitness Shop leverages Amazon Simple Queue Service (SQS) as a queueing service between microservices.

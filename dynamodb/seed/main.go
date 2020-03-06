@@ -205,7 +205,7 @@ func StoreItems(userID string, i cart.Items) error {
 func main() {
 	flag.StringVar(&region, "region", "", "The region to send requests to (required)")
 	flag.StringVar(&table, "table", "", "The Amazon DynamoDB table to use (required)")
-	flag.StringVar(&dynamoURL, "db", "", "An optional endpoint URL (optional, hostname only or fully qualified URI)")
+	flag.StringVar(&dynamoURL, "endpoint", "", "An optional endpoint URL (optional, hostname only or fully qualified URI)")
 	flag.Parse()
 
 	// Make sure region and table are set
