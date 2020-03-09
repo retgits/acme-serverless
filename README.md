@@ -20,7 +20,7 @@ To get started you'll need:
 
 * [Go (at least Go 1.12)](https://golang.org/dl/);
 * [An AWS Account](https://portal.aws.amazon.com/billing/signup);
-* [A Pulumi Account](https://app.pulumi.com/signup) for deployments;
+* [A Pulumi Account](https://app.pulumi.com/signup) for deployments if you choose SQS for communication;
 * The services use [Sentry.io](https://sentry.io) for tracing and error reporting
 
 ## Supported AWS Services
