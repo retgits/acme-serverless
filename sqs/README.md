@@ -13,6 +13,14 @@ pulumi stack init <your pulumi org>/acmeserverless-sqs/dev
 
 To create the Pulumi stack, and create the Amazon SQS queues, run `pulumi up`
 
+If you want to keep track of the resources in Pulumi, you can add tags to your stack as well.
+
+```bash
+pulumi stack tag set app:name acmeserverless
+pulumi stack tag set app:feature acmeserverless-sqs
+pulumi stack tag set app:domain infra
+```
+
 ## Sending events to test
 
 To send a message to an SQS queue using the test data from the files in the [test](./test/) folder, you can use the Go app in the test folder. The app has three required flags and one optional one:
