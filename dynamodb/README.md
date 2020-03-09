@@ -15,6 +15,14 @@ To create the Pulumi stack, and create the Amazon DynamoDB table, run `pulumi up
 
 If you want to change any of the settings for DynamoDB, you can either change them in the [`Pulumi.dev.yaml`](./pulumi/Pulumi.dev.yaml) file, or in the [main.go](./pulumi/main.go) file in the pulumi directory.
 
+If you want to keep track of the resources in Pulumi, you can add tags to your stack as well.
+
+```bash
+pulumi stack tag set app:name acmeserverless
+pulumi stack tag set app:feature acmeserverless-dynamodb
+pulumi stack tag set app:domain infra
+```
+
 ## Seed the table
 
 To seed the DynamoDB table with random data, you can use the Go app in the [seed](./seed) directory. The app has two required flags and one optional one:
