@@ -1,0 +1,11 @@
+config:
+  aws:region: us-west-2
+  awsconfig:dynamodb:
+    billingmode: PAY_PER_REQUEST
+    writecapacity: 5
+    readcapacity: 5
+  awsconfig:tags:
+    author: retgits
+    feature: acmeserverless
+    team: vcs
+    version: 0.1.0

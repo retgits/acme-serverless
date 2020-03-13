@@ -1,0 +1,3 @@
+name: acmeserverless-dynamodb
+runtime: go
+description: The ACME Serverless Fitness Shop leverages Amazon DynamoDB to store data.

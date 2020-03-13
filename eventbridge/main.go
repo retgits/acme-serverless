@@ -13,18 +13,16 @@ import (
 )
 
 var (
-	eventType    string
-	fileLocation string
-	eventBus     string
-	region       string
-	service      string
+	eventType string
+	eventBus  string
+	region    string
+	service   string
 )
 
 func main() {
 	flag.StringVar(&eventType, "event", "", "The name of event to send (required)")
 	flag.StringVar(&eventBus, "bus", "", "The name of the Amazon EventBridge bus to send events to (required)")
 	flag.StringVar(&service, "service", "", "The ACME Serverless Fitness Shop service to send events to (required)")
-	flag.StringVar(&fileLocation, "location", "", "The folder containing the JSON files (required)")
 	flag.StringVar(&region, "region", "us-west-2", "The region to send requests to (defaults to us-west-2)")
 	flag.Parse()
 
@@ -41,8 +39,9 @@ func main() {
 		log.Fatal("Error: the 'service' flag must be set")
 	}
 
-	if len(fileLocation) < 1 {
-		log.Fatal("Error: the 'location' flag must be set")
+	fileLocation, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err.Error())
 	}
 
 	bytes, err := ioutil.ReadFile(path.Join(fileLocation, service, fmt.Sprintf("%s.json", eventType)))
