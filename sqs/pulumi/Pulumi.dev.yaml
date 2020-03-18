@@ -1,7 +1,0 @@
-config:
-  aws:region: us-west-2
-  awsconfig:tags:
-    author: retgits
-    feature: acmeserverless
-    team: vcs
-    version: 0.1.0
