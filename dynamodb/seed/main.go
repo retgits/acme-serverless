@@ -68,7 +68,7 @@ func AddUser(usr user.User) error {
 		S: aws.String(usr.Username),
 	}
 	em[":payload"] = &dynamodb.AttributeValue{
-		S: aws.String(payload),
+		S: aws.String(string(payload)),
 	}
 
 	uii := &dynamodb.UpdateItemInput{
@@ -106,7 +106,7 @@ func AddProduct(p catalog.Product) error {
 	// Create a map of DynamoDB Attribute Values containing the table data elements
 	em := make(map[string]*dynamodb.AttributeValue)
 	em[":payload"] = &dynamodb.AttributeValue{
-		S: aws.String(payload),
+		S: aws.String(string(payload)),
 	}
 
 	uii := &dynamodb.UpdateItemInput{
@@ -151,7 +151,7 @@ func AddOrder(o order.Order) (order.Order, error) {
 		S: aws.String(o.UserID),
 	}
 	em[":payload"] = &dynamodb.AttributeValue{
-		S: aws.String(payload),
+		S: aws.String(string(payload)),
 	}
 
 	uii := &dynamodb.UpdateItemInput{
@@ -289,7 +289,7 @@ func main() {
 	}
 
 	for _, crt := range carts {
-		err = StoreItems(crt.Userid, crt.Items)
+		err = StoreItems(crt.UserID, crt.Items)
 		if err != nil {
 			log.Println(err)
 		}

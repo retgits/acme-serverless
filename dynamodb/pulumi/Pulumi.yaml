@@ -1,3 +1,25 @@
 name: acmeserverless-dynamodb
 runtime: go
 description: The ACME Serverless Fitness Shop leverages Amazon DynamoDB to store data.
+template:
+  config:
+      aws:region:
+        description: The AWS region to deploy into
+      awsconfig:dynamodb:
+        billingmode:
+          description: The billing mode for your DynamoDB table
+        writecapacity:
+          description: The write capacity for your DynamoDB table
+        readcapacity:
+          description: The read capacity for your DynamoDB table
+      awsconfig:tags:
+        author:
+          description: The author, you...
+        feature:
+          description: The name of the overall app you're deploying
+          default: acmeserverless
+        team:
+          description: The team you're on
+        version:
+          description: The version
+          default: 0.2.0

@@ -43,16 +43,13 @@ func main() {
 		tagMap["ManagedBy"] = pulumi.String("Pulumi")
 		tagMap["Stage"] = pulumi.String(ctx.Stack())
 
-		// paymentErrorQueueArgs are the arguments needed to create the Payment Error Queue
-		paymentErrorQueueArgs := &sqs.QueueArgs{
+		// Create the Payment Error Queue
+		paymentErrQueue, err := sqs.NewQueue(ctx, fmt.Sprintf("%s-%s-payment-error", ctx.Stack(), ctx.Project()), &sqs.QueueArgs{
 			MessageRetentionSeconds:  pulumi.Int(120),
 			Name:                     pulumi.String(fmt.Sprintf("%s-%s-payment-error", ctx.Stack(), ctx.Project())),
 			VisibilityTimeoutSeconds: pulumi.Int(30),
 			Tags:                     pulumi.Map(tagMap),
-		}
-
-		// Create the Payment Error Queue
-		paymentErrQueue, err := sqs.NewQueue(ctx, fmt.Sprintf("%s-%s-payment-error", ctx.Stack(), ctx.Project()), paymentErrorQueueArgs)
+		})
 		if err != nil {
 			return err
 		}
@@ -63,46 +60,37 @@ func main() {
 			return fmt.Sprintf("{\"maxReceiveCount\":1,\"deadLetterTargetArn\":\"%s\"}", name)
 		})
 
-		// paymentRequestQueueArgs are the arguments needed to create the Payment Request Queue
-		paymentRequestQueueArgs := &sqs.QueueArgs{
+		// Create the Payment Request Queue
+		paymentRequestQueue, err := sqs.NewQueue(ctx, fmt.Sprintf("%s-%s-payment-request", ctx.Stack(), ctx.Project()), &sqs.QueueArgs{
 			MessageRetentionSeconds:  pulumi.Int(120),
 			Name:                     pulumi.String(fmt.Sprintf("%s-%s-payment-request", ctx.Stack(), ctx.Project())),
 			VisibilityTimeoutSeconds: pulumi.Int(30),
 			Tags:                     pulumi.Map(tagMap),
 			RedrivePolicy:            paymentRedrivePolicy,
-		}
-
-		// Create the Payment Request Queue
-		paymentRequestQueue, err := sqs.NewQueue(ctx, fmt.Sprintf("%s-%s-payment-request", ctx.Stack(), ctx.Project()), paymentRequestQueueArgs)
+		})
 		if err != nil {
 			return err
 		}
 
-		// paymentResponseQueueArgs are the arguments needed to create the Payment Response Queue
-		paymentResponseQueueArgs := &sqs.QueueArgs{
+		// Create the Payment Response Queue
+		paymentResponseQueue, err := sqs.NewQueue(ctx, fmt.Sprintf("%s-%s-payment-response", ctx.Stack(), ctx.Project()), &sqs.QueueArgs{
 			MessageRetentionSeconds:  pulumi.Int(120),
 			Name:                     pulumi.String(fmt.Sprintf("%s-%s-payment-response", ctx.Stack(), ctx.Project())),
 			VisibilityTimeoutSeconds: pulumi.Int(30),
 			Tags:                     pulumi.Map(tagMap),
 			RedrivePolicy:            paymentRedrivePolicy,
-		}
-
-		// Create the Payment Response Queue
-		paymentResponseQueue, err := sqs.NewQueue(ctx, fmt.Sprintf("%s-%s-payment-response", ctx.Stack(), ctx.Project()), paymentResponseQueueArgs)
+		})
 		if err != nil {
 			return err
 		}
 
-		// shipmentErrorQueueArgs are the arguments needed to create the Shipment Error Queue
-		shipmentErrorQueueArgs := &sqs.QueueArgs{
+		// Create the Shipment Error Queue
+		shipmentErrQueue, err := sqs.NewQueue(ctx, fmt.Sprintf("%s-%s-shipment-error", ctx.Stack(), ctx.Project()), &sqs.QueueArgs{
 			MessageRetentionSeconds:  pulumi.Int(120),
 			Name:                     pulumi.String(fmt.Sprintf("%s-%s-shipment-error", ctx.Stack(), ctx.Project())),
 			VisibilityTimeoutSeconds: pulumi.Int(30),
 			Tags:                     pulumi.Map(tagMap),
-		}
-
-		// Create the Shipment Error Queue
-		shipmentErrQueue, err := sqs.NewQueue(ctx, fmt.Sprintf("%s-%s-shipment-error", ctx.Stack(), ctx.Project()), shipmentErrorQueueArgs)
+		})
 		if err != nil {
 			return err
 		}
@@ -113,32 +101,26 @@ func main() {
 			return fmt.Sprintf("{\"maxReceiveCount\":1,\"deadLetterTargetArn\":\"%s\"}", name)
 		})
 
-		// shipmentRequestQueueArgs are the arguments needed to create the Shipment Request Queue
-		shipmentRequestQueueArgs := &sqs.QueueArgs{
+		// Create the Shipment Request Queue
+		shipmentRequestQueue, err := sqs.NewQueue(ctx, fmt.Sprintf("%s-%s-shipment-request", ctx.Stack(), ctx.Project()), &sqs.QueueArgs{
 			MessageRetentionSeconds:  pulumi.Int(120),
 			Name:                     pulumi.String(fmt.Sprintf("%s-%s-shipment-request", ctx.Stack(), ctx.Project())),
 			VisibilityTimeoutSeconds: pulumi.Int(30),
 			Tags:                     pulumi.Map(tagMap),
 			RedrivePolicy:            shipmentRedrivePolicy,
-		}
-
-		// Create the Shipment Request Queue
-		shipmentRequestQueue, err := sqs.NewQueue(ctx, fmt.Sprintf("%s-%s-shipment-request", ctx.Stack(), ctx.Project()), shipmentRequestQueueArgs)
+		})
 		if err != nil {
 			return err
 		}
 
-		// shipmentResponseQueueArgs are the arguments needed to create the Shipment Response Queue
-		shipmentResponseQueueArgs := &sqs.QueueArgs{
+		// Create the Shipment Response Queue
+		shipmentResponseQueue, err := sqs.NewQueue(ctx, fmt.Sprintf("%s-%s-shipment-response", ctx.Stack(), ctx.Project()), &sqs.QueueArgs{
 			MessageRetentionSeconds:  pulumi.Int(120),
 			Name:                     pulumi.String(fmt.Sprintf("%s-%s-shipment-response", ctx.Stack(), ctx.Project())),
 			VisibilityTimeoutSeconds: pulumi.Int(30),
 			Tags:                     pulumi.Map(tagMap),
 			RedrivePolicy:            shipmentRedrivePolicy,
-		}
-
-		// Create the Shipment Response Queue
-		shipmentResponseQueue, err := sqs.NewQueue(ctx, fmt.Sprintf("%s-%s-shipment-response", ctx.Stack(), ctx.Project()), shipmentResponseQueueArgs)
+		})
 		if err != nil {
 			return err
 		}
