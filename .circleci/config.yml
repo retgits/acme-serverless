@@ -1,0 +1,43 @@
+version: 2.1
+orbs:
+  pulumi: pulumi/pulumi@1.2.0
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.13
+    steps:
+      - checkout
+      - pulumi/login:
+          version: 1.12.1
+      - run:
+          command: |
+            echo "Creating Pulumi files"
+            echo "Creating Pulumi file for DynamoDB"
+            echo "config:" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "  aws:region: us-west-2" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "  awsconfig:dynamodb:" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "    billingmode: PAY_PER_REQUEST" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "    writecapacity: 5" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "    readcapacity: 5" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "  awsconfig:tags:" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "    author: retgits" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "    feature: acmeserverless" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "    team: vcs" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "    version: 0.2.0" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "Creating Pulumi file for SQS"
+            echo "config:" >> ~/project/sqs/pulumi/Pulumi.dev.yaml
+            echo "  aws:region: us-west-2" >> ~/project/sqs/pulumi/Pulumi.dev.yaml
+            echo "  awsconfig:tags:" >> ~/project/sqs/pulumi/Pulumi.dev.yaml
+            echo "    author: retgits" >> ~/project/sqs/pulumi/Pulumi.dev.yaml
+            echo "    feature: acmeserverless" >> ~/project/sqs/pulumi/Pulumi.dev.yaml
+            echo "    team: vcs" >> ~/project/sqs/pulumi/Pulumi.dev.yaml
+            echo "    version: 0.2.0" >> ~/project/sqs/pulumi/Pulumi.dev.yaml
+            pulumi plugin install resource aws 1.24.0
+      - pulumi/update:
+          stack: retgits/dev
+          working_directory: ~/project/dynamodb/pulumi
+          skip-preview: true
+      - pulumi/update:
+          stack: retgits/dev
+          working_directory: ~/project/sqs/pulumi
+          skip-preview: true
