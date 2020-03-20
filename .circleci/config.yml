@@ -41,3 +41,9 @@ jobs:
           stack: retgits/dev
           working_directory: ~/project/sqs/pulumi
           skip-preview: true
+workflows:
+  version: 2
+  deploy:
+    jobs:
+      - build:
+          context: ACMEServerless
