@@ -13,7 +13,7 @@ pulumi stack init <your pulumi org>/acmeserverless-dynamodb/dev
 
 To create the Pulumi stack, and create the Amazon DynamoDB table, run `pulumi up`
 
-If you want to change any of the settings for DynamoDB, you can either change them in the [`Pulumi.dev.yaml`](./pulumi/Pulumi.dev.yaml) file, or in the [main.go](./pulumi/main.go) file in the pulumi directory.
+Pulumi is configured using a file called `Pulumi.dev.yaml`. A sample configuration is available in the Pulumi directory. You can rename [`Pulumi.dev.yaml.sample`](./pulumi/Pulumi.dev.yaml.sample) to `Pulumi.dev.yaml` and update the variables accordingly. Alternatively, you can change variables directly in the [main.go](./pulumi/main.go) file in the pulumi directory.
 
 If you want to keep track of the resources in Pulumi, you can add tags to your stack as well.
 

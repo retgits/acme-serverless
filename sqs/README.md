@@ -11,6 +11,8 @@ cd pulumi
 pulumi stack init <your pulumi org>/acmeserverless-sqs/dev
 ```
 
+Pulumi is configured using a file called `Pulumi.dev.yaml`. A sample configuration is available in the Pulumi directory. You can rename [`Pulumi.dev.yaml.sample`](./pulumi/Pulumi.dev.yaml.sample) to `Pulumi.dev.yaml` and update the variables accordingly. Alternatively, you can change variables directly in the [main.go](./pulumi/main.go) file in the pulumi directory.
+
 To create the Pulumi stack, and create the Amazon SQS queues, run `pulumi up`
 
 If you want to keep track of the resources in Pulumi, you can add tags to your stack as well.
