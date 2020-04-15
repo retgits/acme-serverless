@@ -48,7 +48,7 @@ The Point-of-Sales app can be hosted on [Amazon S3](https://aws.amazon.com/s3).
 
 ## Overview
 
-![architecture](./overview-sqs.png)
+![architecture](./design/overview-sqs.png)
 
 The diagram shows how the services in the different domains work together. The architecture above shows the Amazon Simple Queue Service deployment option
 

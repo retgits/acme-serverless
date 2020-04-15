@@ -121,8 +121,8 @@ func AddCatalogItem(product acmeserverless.CatalogItem) error {
 // AddOrder stores a new order in Amazon DynamoDB
 func AddOrder(order acmeserverless.Order) error {
 	// Generate and assign a new orderID
-	o.OrderID = uuid.Must(uuid.NewV4()).String()
-	o.Status = aws.String("Pending Payment")
+	order.OrderID = uuid.Must(uuid.NewV4()).String()
+	order.Status = aws.String("Pending Payment")
 
 	// Marshal the newly updated product struct
 	payload, err := order.Marshal()
@@ -164,7 +164,7 @@ func AddOrder(order acmeserverless.Order) error {
 }
 
 // StoreItems saves the cart items from a single user into Amazon DynamoDB
-func StoreItems(userID string, item acmeserverless.CartItem) error {
+func StoreItems(userID string, item acmeserverless.CartItems) error {
 	payload, err := item.Marshal()
 	if err != nil {
 		return err
@@ -218,16 +218,16 @@ func main() {
 	// Read all files.
 	// if any of the files are not read successfully the function panics
 	userData, err := ioutil.ReadFile("./user-data.json")
-	catalogData, err = ioutil.ReadFile("./catalog-data.json")
-	orderData, err = ioutil.ReadFile("./order-data.json")
-	cartData, err = ioutil.ReadFile("./cart-data.json")
+	catalogData, err := ioutil.ReadFile("./catalog-data.json")
+	orderData, err := ioutil.ReadFile("./order-data.json")
+	cartData, err := ioutil.ReadFile("./cart-data.json")
 	if err != nil {
 		panic(err)
 	}
 
 	var users []acmeserverless.User
 
-	err = json.Unmarshal(data, &users)
+	err = json.Unmarshal(userData, &users)
 	if err != nil {
 		log.Println(err)
 	}
@@ -241,13 +241,13 @@ func main() {
 
 	var products []acmeserverless.CatalogItem
 
-	err = json.Unmarshal(data, &products)
+	err = json.Unmarshal(catalogData, &products)
 	if err != nil {
 		log.Println(err)
 	}
 
 	for _, product := range products {
-		err = AddProduct(product)
+		err = AddCatalogItem(product)
 		if err != nil {
 			log.Println(err)
 		}
@@ -255,13 +255,13 @@ func main() {
 
 	var orders acmeserverless.Orders
 
-	err = json.Unmarshal(data, &orders)
+	err = json.Unmarshal(orderData, &orders)
 	if err != nil {
 		log.Println(err)
 	}
 
 	for _, ord := range orders {
-		ord, err = AddOrder(ord)
+		err = AddOrder(ord)
 		if err != nil {
 			log.Println(err)
 		}
@@ -269,7 +269,7 @@ func main() {
 
 	var carts acmeserverless.Carts
 
-	err = json.Unmarshal(data, &carts)
+	err = json.Unmarshal(cartData, &carts)
 	if err != nil {
 		log.Println(err)
 	}

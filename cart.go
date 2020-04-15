@@ -32,16 +32,16 @@ func UnmarshalCart(data string) (Cart, error) {
 }
 
 // Items is a slice of Item objects
-type Items []CartItem
+type CartItems []CartItem
 
 // Marshal returns the JSON encoding of Items
-func (r *Items) Marshal() ([]byte, error) {
+func (r *CartItems) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-// UnmarshalItems parses the JSON-encoded data and stores the result in an Items object
-func UnmarshalItems(data string) (Items, error) {
-	var r Items
+// UnmarshalItems parses the JSON-encoded data and stores the result in an CartItems object
+func UnmarshalItems(data string) (CartItems, error) {
+	var r CartItems
 	err := json.Unmarshal([]byte(data), &r)
 	return r, err
 }
@@ -67,6 +67,11 @@ type CartItem struct {
 
 	// Quantity is how many of the item the user has in their cart
 	Quantity int64 `json:"quantity"`
+}
+
+// Marshal returns the JSON encoding of CartItem
+func (r *CartItem) Marshal() ([]byte, error) {
+	return json.Marshal(r)
 }
 
 // UnmarshalItem parses the JSON-encoded data and stores the result in an Item
