@@ -8,7 +8,7 @@ jobs:
     steps:
       - checkout
       - pulumi/login:
-          version: 1.12.1
+          version: 1.14.1
       - run:
           command: |
             echo "Creating Pulumi files"
