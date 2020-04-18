@@ -25,14 +25,14 @@
             {
                 "id": "1dc111aa-f83f-4848-a629-1ce26482d9f8",
                 "description": "suspendisse potenti in eleifend quam a odio in hac habitasse platea dictumst",
-                "quantity": "2",
-                "price": "2.56"
+                "quantity": 2,
+                "price": 2.56
             },
             {
                 "id": "04a4c951-90da-4506-a50a-65d046a2cbba",
                 "description": "ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae donec pharetra magna",
-                "quantity": "4",
-                "price": "1.74"
+                "quantity": 4,
+                "price": 1.74
             }
         ],
         "total": "783"
@@ -63,8 +63,8 @@
             {
                 "id": "08920e33-1339-4c9b-87c1-d29eaa2ee8cf",
                 "description": "curae duis faucibus accumsan odio curabitur convallis duis consequat dui nec nisi volutpat eleifend",
-                "quantity": "5",
-                "price": "2.78"
+                "quantity": 5,
+                "price": 2.78
             }
         ],
         "total": "1005"

@@ -9,4 +9,5 @@ require (
 	github.com/pulumi/pulumi-aws/sdk v1.31.0
 	github.com/pulumi/pulumi/sdk v1.14.1
 	github.com/retgits/creditcard v0.6.0
+	go.mongodb.org/mongo-driver v1.4.0-beta1.0.20200416213727-891a5fc9374a
 )
