@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -28,7 +29,10 @@ var dbs *mongo.Database
 
 // initialize creates the connection to MongoDB.
 func initialize() {
-	connString := fmt.Sprintf("mongodb://%s:%s@%s:%s", username, password, hostname, port)
+	connString := fmt.Sprintf("mongodb+srv://%s:%s@%s:%s", username, password, hostname, port)
+	if strings.HasSuffix(connString, ":") {
+		connString = connString[:len(connString)-1]
+	}
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(connString))
 	if err != nil {
