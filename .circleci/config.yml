@@ -8,38 +8,38 @@ jobs:
     steps:
       - checkout
       - pulumi/login:
-          version: 1.14.1
+          version: 2.0.0
       - run:
           command: |
             echo "Creating Pulumi files"
             echo "Creating Pulumi file for DynamoDB"
-            echo "config:" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
-            echo "  aws:region: us-west-2" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
-            echo "  awsconfig:dynamodb:" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
-            echo "    billingmode: PAY_PER_REQUEST" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
-            echo "    writecapacity: 5" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
-            echo "    readcapacity: 5" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
-            echo "  awsconfig:tags:" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
-            echo "    author: retgits" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
-            echo "    feature: acmeserverless" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
-            echo "    team: vcs" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
-            echo "    version: 0.2.0" >> ~/project/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "config:" >> ~/project/datastore/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "  aws:region: us-west-2" >> ~/project/datastore/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "  awsconfig:dynamodb:" >> ~/project/datastore/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "    billingmode: PAY_PER_REQUEST" >> ~/project/datastore/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "    writecapacity: 5" >> ~/project/datastore/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "    readcapacity: 5" >> ~/project/datastore/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "  awsconfig:tags:" >> ~/project/datastore/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "    author: retgits" >> ~/project/datastore/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "    feature: acmeserverless" >> ~/project/datastore/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "    team: vcs" >> ~/project/datastore/dynamodb/pulumi/Pulumi.dev.yaml
+            echo "    version: 0.2.0" >> ~/project/datastore/dynamodb/pulumi/Pulumi.dev.yaml
             echo "Creating Pulumi file for SQS"
-            echo "config:" >> ~/project/sqs/pulumi/Pulumi.dev.yaml
-            echo "  aws:region: us-west-2" >> ~/project/sqs/pulumi/Pulumi.dev.yaml
-            echo "  awsconfig:tags:" >> ~/project/sqs/pulumi/Pulumi.dev.yaml
-            echo "    author: retgits" >> ~/project/sqs/pulumi/Pulumi.dev.yaml
-            echo "    feature: acmeserverless" >> ~/project/sqs/pulumi/Pulumi.dev.yaml
-            echo "    team: vcs" >> ~/project/sqs/pulumi/Pulumi.dev.yaml
-            echo "    version: 0.2.0" >> ~/project/sqs/pulumi/Pulumi.dev.yaml
-            pulumi plugin install resource aws 1.24.0
+            echo "config:" >> ~/project/messaging/sqs/pulumi/Pulumi.dev.yaml
+            echo "  aws:region: us-west-2" >> ~/project/messaging/sqs/pulumi/Pulumi.dev.yaml
+            echo "  awsconfig:tags:" >> ~/project/messaging/sqs/pulumi/Pulumi.dev.yaml
+            echo "    author: retgits" >> ~/project/messaging/sqs/pulumi/Pulumi.dev.yaml
+            echo "    feature: acmeserverless" >> ~/project/messaging/sqs/pulumi/Pulumi.dev.yaml
+            echo "    team: vcs" >> ~/project/messaging/sqs/pulumi/Pulumi.dev.yaml
+            echo "    version: 0.2.0" >> ~/project/messaging/sqs/pulumi/Pulumi.dev.yaml
+            pulumi plugin install resource aws 2.0.0
       - pulumi/update:
           stack: retgits/dev
-          working_directory: ~/project/dynamodb/pulumi
+          working_directory: ~/project/datastore/dynamodb/pulumi
           skip-preview: true
       - pulumi/update:
           stack: retgits/dev
-          working_directory: ~/project/sqs/pulumi
+          working_directory: ~/project/messaging/sqs/pulumi
           skip-preview: true
 workflows:
   version: 2

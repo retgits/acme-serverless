@@ -16,35 +16,11 @@ The ACME Serverless Fitness Shop contains seven different domains of service:
 * [User](https://github.com/retgits/acme-serverless-user)
 * [Point-of-Sales](https://github.com/retgits/acme-serverless-pos)
 
-To get started you'll need:
+To get deploy the services, you can follow the instructions for
 
-* [Go (at least Go 1.12)](https://golang.org/dl/);
-* [An AWS Account](https://portal.aws.amazon.com/billing/signup);
-* [A Pulumi Account](https://app.pulumi.com/signup) for deployments if you choose SQS for communication;
-* The services use [Sentry.io](https://sentry.io) for tracing and error reporting
-
-## Supported AWS Services
-
-### Data Store
-
-The ACME Serverless Fitness Shop needs to store data. In the list below you can find the supported data store services with a link to the deployment instructions.
-
-* [Amazon DynamoDB](./dynamodb)
-
-### Eventing
-
-Wherever possible, the ACME Serverless Fitness Shop uses event-driven communication. In the list below you can find the supported eventing solutions with a link to the deployment instructions.
-
-* [Amazon EventBridge](./eventbridge)
-* [Amazon Simple Queue Service](./sqs)
-
-### APIs
-
-All APIs will be accessible through Amazon API Gateway
-
-### Hosting
-
-The Point-of-Sales app can be hosted on [Amazon S3](https://aws.amazon.com/s3).
+| [AWS](./deploy/lambda/README.md)                  | [Google Cloud Platform](./deploy/cloudrun/README.md) |
+|---------------------------------------------------|------------------------------------------------------|
+| Using AWS Lambda, Amazon SQS, and Amazon DynamoDB | Using Google Cloud Run and MongoDB                   |
 
 ## Overview
 

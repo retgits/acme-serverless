@@ -1,6 +1,6 @@
 # ACME Serverless Fitness Store on Google Cloud Run
 
-Serverless is more than just Function-as-a-Service. There are many different forms to build and deploy serverless applications and one of the is using containers on [Google Cloud Run](https://cloud.google.com/run/). This tutorial walks you through setting up the services of the ACME Serverless Fitness Shop.
+Serverless is more than just Function-as-a-Service. There are many different forms to build and deploy serverless applications and one of them is using containers on [Google Cloud Run](https://cloud.google.com/run/). This tutorial walks you through setting up the services of the ACME Serverless Fitness Shop.
 
 ## Prerequisites
 
@@ -50,7 +50,7 @@ The connection string will be `mongodb+srv://<username>:<password>@<cluster name
 
 ## Step 2: Seeding MongoDB
 
-To seed MongoDB with random data, you can use the Go app in the [mongodb/seed](../mongodb/seed) directory.
+To seed MongoDB with random data, you can use the Go app in the [mongodb/seed](../../datastore/mongodb/seed) directory.
 
 ```bash
 ## Clone the repository
@@ -60,7 +60,7 @@ git clone https://github.com/retgits/acme-serverless
 go get ./...
 
 ## Change to the seed directory
-cd mongodb/seed
+cd datastore/mongodb/seed
 
 ## Run the seed program
 go run main.go -username=<username> -password=<password> -hostname=<cluster name>-<random postfix>.gcp.mongodb.net
