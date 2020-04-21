@@ -1,6 +1,6 @@
 # ACME Serverless Fitness Store on Google Cloud Run
 
-Serverless is more than just Function-as-a-Service. There are many different forms to build and deploy serverless applications and one of them is using containers on [Google Cloud Run](https://cloud.google.com/run/). This tutorial walks you through setting up the services of the ACME Serverless Fitness Shop.
+Serverless is more than just Function-as-a-Service. There are many different forms to build and deploy serverless applications and one of them is using containers on [Google Cloud Run for Anthos](https://cloud.google.com/anthos/run/). This tutorial walks you through setting up the services of the ACME Serverless Fitness Shop.
 
 ## Prerequisites
 
@@ -24,19 +24,63 @@ Then be sure to authorize gcloud to access the Cloud Platform with your Google u
 gcloud auth login
 ```
 
-Next, set a default region for Google Cloud run:
+Next, set a default region for Google Cloud Run:
 
 ```bash
-gcloud config set run/region us-west1
+gcloud config set run/region us-central1
 ```
 
-Finally, set a default platform type for Google Cloud run:
+Finally, set a default platform type for Google Cloud Run:
 
 ```bash
-gcloud config set run/platform managed
+gcloud config set run/platform gke
 ```
 
-## Step 1: MongoDB Atlas
+## Step 1: Create the Google Cloud Kubernetes Engine cluster
+
+> [Anthos](https://cloud.google.com/anthos) is an open hybrid and multi-cloud application platform that enables you to modernize your existing applications, build new ones, and run them anywhere in a secure manner. Built on open source technologies pioneered by Google—including Kubernetes, Istio, and Knative.
+
+For this tutorial you'll leverage the Anthos platform to deploy your apps.Throughout the rest of the tutorial, you'll need the **PROJECT_ID** of your default GCP project. You can view your project ID by running the command `gcloud config get-value project`. To create an environment variable with the value of your default project ID, you can run the command:
+
+```bash
+export PROJECT_ID=`gcloud config get-value project`
+```
+
+To create a cluster, you can either use the Google Cloud Console (and make sure to check `Enable Cloud Run for Anthos` as a feature) or run the command below:
+
+```bash
+gcloud beta container --project "$PROJECT_ID" clusters create "acmeserverless" --zone "us-central1-c" --no-enable-basic-auth --release-channel "regular" --machine-type "n1-standard-2" --image-type "COS" --disk-type "pd-standard" --disk-size "100" --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/devstorage.read_only","https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring","https://www.googleapis.com/auth/servicecontrol","https://www.googleapis.com/auth/service.management.readonly","https://www.googleapis.com/auth/trace.append" --num-nodes "3" --enable-stackdriver-kubernetes --enable-ip-alias --network "projects/$PROJECT_ID/global/networks/default" --subnetwork "projects/$PROJECT_ID/regions/us-central1/subnetworks/default" --default-max-pods-per-node "110" --no-enable-master-authorized-networks --addons HorizontalPodAutoscaling,HttpLoadBalancing,CloudRun --enable-autoupgrade --enable-autorepair
+```
+
+To validate that your cluster has been created, you can run:
+
+```bash
+$ gcloud container clusters list
+NAME            LOCATION       MASTER_VERSION  MASTER_IP      MACHINE_TYPE   NODE_VERSION   NUM_NODES  STATUS
+acmeserverless  us-central1-c  1.15.9-gke.24   146.148.84.58  n1-standard-2  1.15.9-gke.24  3          RUNNING
+```
+
+To allow your `kubectl` and other Kubernetes tools to communicate with the cluster, run:
+
+```bash
+gcloud container clusters get-credentials acmeserverless --zone us-central1-c
+```
+
+You can set the name and location of the cluster as defaults in your Google Cloud configuration:
+
+```bash
+gcloud config set run/cluster acmeserverless
+gcloud config set run/cluster_location us-central1-c
+```
+
+To make these available for further use as well, run:
+
+```bash
+export CLUSTER=acmeserverless
+export CLUSTER_LOCATION=us-central1-c
+```
+
+## Step 2: MongoDB Atlas
 
 To create a MongoDB cluster in Atlas, follow the steps after you've signed up choosing *Google Cloud Platform* as the cloud provider. When you choose an `M0` type cluster and you're okay that no backups are made (which is totally fine for this tutorial), you're able to create a free cluster. After the cluster is created, click the "*connect*" button to set up a user.
 
@@ -48,7 +92,7 @@ The IP address that Google Cloud Run will use to connect to MongoDB will vary so
 
 The connection string will be `mongodb+srv://<username>:<password>@<cluster name>-<random postfix>.gcp.mongodb.net/test`
 
-## Step 2: Seeding MongoDB
+## Step 3: Seeding MongoDB
 
 To seed MongoDB with random data, you can use the Go app in the [mongodb/seed](../../datastore/mongodb/seed) directory.
 
@@ -66,13 +110,13 @@ cd datastore/mongodb/seed
 go run main.go -username=<username> -password=<password> -hostname=<cluster name>-<random postfix>.gcp.mongodb.net
 ```
 
-## Step 3: (Optional) Validate the data using MongoDB Compass
+## Step 4: (Optional) Validate the data using MongoDB Compass
 
 [MongoDB compass](https://www.mongodb.com/download-center/compass), is a GUI for MongoDB. After you've downloaded it for your operating system, you can connect to your cluster using the connection string created earlier. Once you log in, you'll see a "*acmeserverless*" database. In that database, there are four collections.
 
 ![mongo collections](./mongo-collections.png)
 
-## Step 4: Build the containers
+## Step 5: Build the containers
 
 While you can use Google Cloud Build to build the Docker containers, this tutorial uses the [`docker build`](https://docs.docker.com/engine/reference/commandline/build/) command.
 
@@ -82,15 +126,9 @@ If you have not yet configured Docker to use the gcloud command-line tool to aut
 gcloud auth configure-docker
 ```
 
-Throughout the rest of the tutorial, you'll need the **PROJECT_ID** of your default GCP project. You can view your project ID by running the command `gcloud config get-value project`. To create an environment variable with the value of your default project ID, you can run the command:
-
-```bash
-export PROJECT_ID=`gcloud config get-value project`
-```
-
 Google Cloud Run (fully managed) only supports container images stored in Container Registry or Artifact Registry. In this tutorial you'll make use of Google Container Registry to store the containers.
 
-### Step 4.1: Build the Cart service
+### Step 5.1: Build the Cart service
 
 > A cart service, because what is a shop without a cart to put stuff in?
 
@@ -116,7 +154,7 @@ docker push gcr.io/$PROJECT_ID/cart:$VERSION
 cd ..
 ```
 
-### Step 4.2: Build the Catalog service
+### Step 5.2: Build the Catalog service
 
 > A catalog service, because what is a shop without a catalog to show off our awesome red pants?
 
@@ -142,7 +180,7 @@ docker push gcr.io/$PROJECT_ID/catalog:$VERSION
 cd ..
 ```
 
-### Step 4.3: Build the Order service
+### Step 5.3: Build the Order service
 
 > An order service, because what is a shop without actual orders to be shipped?
 
@@ -168,7 +206,7 @@ docker push gcr.io/$PROJECT_ID/order:$VERSION
 cd ..
 ```
 
-### Step 4.4: Build the Payment service
+### Step 5.4: Build the Payment service
 
 > A payment service, because nothing in life is really free...
 
@@ -194,7 +232,7 @@ docker push gcr.io/$PROJECT_ID/payment:$VERSION
 cd ..
 ```
 
-### Step 4.5: Build the Shipment service
+### Step 5.5: Build the Shipment service
 
 > A shipping service, because what is a shop without a way to ship your purchases?
 
@@ -220,7 +258,7 @@ docker push gcr.io/$PROJECT_ID/shipment:$VERSION
 cd ..
 ```
 
-### Step 4.6: Build the User service
+### Step 5.6: Build the User service
 
 > A user service, because what is a shop without users to buy our awesome red pants?
 
@@ -246,7 +284,7 @@ docker push gcr.io/$PROJECT_ID/user:$VERSION
 cd ..
 ```
 
-## Step 5: Deploy the services
+## Step 6: Deploy the services
 
 In order to deploy to Cloud Run (fully managed), you must have the Owner or Editor role, or both the Cloud Run Admin and Service Account User roles, or any custom role that includes this [specific list of permissions](https://cloud.google.com/run/docs/reference/iam/roles?authuser=1#additional-configuration).Deploying to a service for the first time creates its first revision (revisions are *immutable*).
 
@@ -292,59 +330,65 @@ export LVERSION=v0_3_0
 export TYPE=backend
 ```
 
-## Step 5.1: Deploy the Payment service
+## Step 6.1: Deploy the Payment service
 
 ```bash
 ## Get the name of the image of the payment service
 PAYMENT_IMAGE=`docker images --filter=reference='gcr.io/*/payment' --format "{{.Repository}}:{{.Tag}}"`
 
-## Deploy the service to Google Cloud Run
-gcloud run deploy payment --image=$PAYMENT_IMAGE --set-env-vars=SENTRY_DSN=$SENTRY_DSN,VERSION=$VERSION,STAGE=$STAGE,WAVEFRONT_TOKEN=$WAVEFRONT_TOKEN,WAVEFRONT_URL=$WAVEFRONT_URL,MONGO_USERNAME=$MONGO_USERNAME,MONGO_PASSWORD=$MONGO_PASSWORD,MONGO_HOSTNAME=$MONGO_HOSTNAME --labels=author=$AUTHOR,feature=$FEATURE,team=$TEAM,version=$LVERSION,stage=$STAGE,type=$TYPE --allow-unauthenticated
+## Deploy the service to Google Cloud Run for Anthos
+gcloud run deploy payment --namespace=default --image=$PAYMENT_IMAGE --platform=gke --cluster=$CLUSTER --cluster-location=$CLUSTER_LOCATION --connectivity=external --set-env-vars=SENTRY_DSN=$SENTRY_DSN,VERSION=$VERSION,STAGE=$STAGE,WAVEFRONT_TOKEN=$WAVEFRONT_TOKEN,WAVEFRONT_URL=$WAVEFRONT_URL,MONGO_USERNAME=$MONGO_USERNAME,MONGO_PASSWORD=$MONGO_PASSWORD,MONGO_HOSTNAME=$MONGO_HOSTNAME --labels=author=$AUTHOR,feature=$FEATURE,team=$TEAM,version=$LVERSION,stage=$STAGE,type=$TYPE
 ```
 
-## Step 5.2: Deploy the Shipment service
+## Step 6.2: Deploy the Shipment service
 
 ```bash
 ## Get the name of the image of the shipment service
 SHIPMENT_IMAGE=`docker images --filter=reference='gcr.io/*/shipment' --format "{{.Repository}}:{{.Tag}}"`
 
-## Deploy the service to Google Cloud Run
-gcloud run deploy shipment --image=$SHIPMENT_IMAGE --set-env-vars=SENTRY_DSN=$SENTRY_DSN,VERSION=$VERSION,STAGE=$STAGE,WAVEFRONT_TOKEN=$WAVEFRONT_TOKEN,WAVEFRONT_URL=$WAVEFRONT_URL,MONGO_USERNAME=$MONGO_USERNAME,MONGO_PASSWORD=$MONGO_PASSWORD,MONGO_HOSTNAME=$MONGO_HOSTNAME,ORDER_URL=$URL/ship --labels=author=$AUTHOR,feature=$FEATURE,team=$TEAM,version=$LVERSION,stage=$STAGE,type=$TYPE --allow-unauthenticated
+## The ingress controller uses the host field to determine to which service the request must be routed
+ORDER_HOST=order.default.example.com
+
+## Deploy the service to Google Cloud Run for Anthos
+gcloud run deploy shipment --namespace=default --image=$SHIPMENT_IMAGE --platform=gke --cluster=$CLUSTER --cluster-location=$CLUSTER_LOCATION --connectivity=external --set-env-vars=SENTRY_DSN=$SENTRY_DSN,VERSION=$VERSION,STAGE=$STAGE,WAVEFRONT_TOKEN=$WAVEFRONT_TOKEN,WAVEFRONT_URL=$WAVEFRONT_URL,MONGO_USERNAME=$MONGO_USERNAME,MONGO_PASSWORD=$MONGO_PASSWORD,MONGO_HOSTNAME=$MONGO_HOSTNAME,ORDER_URL=$URL/ship,ORDER_HOST=$ORDER_HOST --labels=author=$AUTHOR,feature=$FEATURE,team=$TEAM,version=$LVERSION,stage=$STAGE,type=$TYPE
 ```
 
-## Step 5.3: Deploy the Cart service
+## Step 6.3: Deploy the Cart service
 
 ```bash
 ## Get the name of the image of the cart service
 CART_IMAGE=`docker images --filter=reference='gcr.io/*/cart' --format "{{.Repository}}:{{.Tag}}"`
 
-## Deploy the service to Google Cloud Run
-gcloud run deploy cart --image=$CART_IMAGE --set-env-vars=SENTRY_DSN=$SENTRY_DSN,VERSION=$VERSION,STAGE=$STAGE,WAVEFRONT_TOKEN=$WAVEFRONT_TOKEN,WAVEFRONT_URL=$WAVEFRONT_URL,MONGO_USERNAME=$MONGO_USERNAME,MONGO_PASSWORD=$MONGO_PASSWORD,MONGO_HOSTNAME=$MONGO_HOSTNAME --labels=author=$AUTHOR,feature=$FEATURE,team=$TEAM,version=$LVERSION,stage=$STAGE,type=$TYPE --allow-unauthenticated
+## Deploy the service to Google Cloud Run for Anthos
+gcloud run deploy cart --namespace=default --image=$CART_IMAGE --platform=gke --cluster=$CLUSTER --cluster-location=$CLUSTER_LOCATION --connectivity=external --set-env-vars=SENTRY_DSN=$SENTRY_DSN,VERSION=$VERSION,STAGE=$STAGE,WAVEFRONT_TOKEN=$WAVEFRONT_TOKEN,WAVEFRONT_URL=$WAVEFRONT_URL,MONGO_USERNAME=$MONGO_USERNAME,MONGO_PASSWORD=$MONGO_PASSWORD,MONGO_HOSTNAME=$MONGO_HOSTNAME --labels=author=$AUTHOR,feature=$FEATURE,team=$TEAM,version=$LVERSION,stage=$STAGE,type=$TYPE
 ```
 
-## Step 5.4: Deploy the Catalog service
+## Step 6.4: Deploy the Catalog service
 
 ```bash
 ## Get the name of the image of the catalog service
 CATALOG_IMAGE=`docker images --filter=reference='gcr.io/*/catalog' --format "{{.Repository}}:{{.Tag}}"`
 
-## Deploy the service to Google Cloud Run
-gcloud run deploy catalog --image=$CATALOG_IMAGE --set-env-vars=SENTRY_DSN=$SENTRY_DSN,VERSION=$VERSION,STAGE=$STAGE,WAVEFRONT_TOKEN=$WAVEFRONT_TOKEN,WAVEFRONT_URL=$WAVEFRONT_URL,MONGO_USERNAME=$MONGO_USERNAME,MONGO_PASSWORD=$MONGO_PASSWORD,MONGO_HOSTNAME=$MONGO_HOSTNAME --labels=author=$AUTHOR,feature=$FEATURE,team=$TEAM,version=$LVERSION,stage=$STAGE,type=$TYPE --allow-unauthenticated
+## Deploy the service to Google Cloud Run for Anthos
+gcloud run deploy catalog --namespace=default --image=$CATALOG_IMAGE --platform=gke --cluster=$CLUSTER --cluster-location=$CLUSTER_LOCATION --connectivity=external --set-env-vars=SENTRY_DSN=$SENTRY_DSN,VERSION=$VERSION,STAGE=$STAGE,WAVEFRONT_TOKEN=$WAVEFRONT_TOKEN,WAVEFRONT_URL=$WAVEFRONT_URL,MONGO_USERNAME=$MONGO_USERNAME,MONGO_PASSWORD=$MONGO_PASSWORD,MONGO_HOSTNAME=$MONGO_HOSTNAME --labels=author=$AUTHOR,feature=$FEATURE,team=$TEAM,version=$LVERSION,stage=$STAGE,type=$TYPE
 ```
 
-## Step 5.5: Deploy the User service
+## Step 6.5: Deploy the User service
 
 ```bash
 ## Get the name of the image of the user service
 USER_IMAGE=`docker images --filter=reference='gcr.io/*/user' --format "{{.Repository}}:{{.Tag}}"`
 
-## Deploy the service to Google Cloud Run
-gcloud run deploy user --image=$USER_IMAGE --set-env-vars=SENTRY_DSN=$SENTRY_DSN,VERSION=$VERSION,STAGE=$STAGE,WAVEFRONT_TOKEN=$WAVEFRONT_TOKEN,WAVEFRONT_URL=$WAVEFRONT_URL,MONGO_USERNAME=$MONGO_USERNAME,MONGO_PASSWORD=$MONGO_PASSWORD,MONGO_HOSTNAME=$MONGO_HOSTNAME --labels=author=$AUTHOR,feature=$FEATURE,team=$TEAM,version=$LVERSION,stage=$STAGE,type=$TYPE --allow-unauthenticated
+## Deploy the service to Google Cloud Run for Anthos
+gcloud run deploy user --namespace=default --image=$USER_IMAGE --platform=gke --cluster=$CLUSTER --cluster-location=$CLUSTER_LOCATION --connectivity=external --set-env-vars=SENTRY_DSN=$SENTRY_DSN,VERSION=$VERSION,STAGE=$STAGE,WAVEFRONT_TOKEN=$WAVEFRONT_TOKEN,WAVEFRONT_URL=$WAVEFRONT_URL,MONGO_USERNAME=$MONGO_USERNAME,MONGO_PASSWORD=$MONGO_PASSWORD,MONGO_HOSTNAME=$MONGO_HOSTNAME --labels=author=$AUTHOR,feature=$FEATURE,team=$TEAM,version=$LVERSION,stage=$STAGE,type=$TYPE
 ```
 
-## Step 5.6: Deploy the Order service
+## Step 6.6: Deploy the Order service
 
 ```bash
+## Get the external IP address of the cluster
+EXTERNAL_IP=$(kubectl get services istio-ingress --namespace gke-system --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
 ## Get the name of the image of the order service
 ORDER_IMAGE=`docker images --filter=reference='gcr.io/*/order' --format "{{.Repository}}:{{.Tag}}"`
 
@@ -354,19 +398,23 @@ PAYMENT_URL=`gcloud run services describe payment --format 'value(status.address
 ## Get the URL of the shipment service
 SHIPMENT_URL=`gcloud run services describe shipment --format 'value(status.address.url)'`/ship
 
-## Deploy the service to Google Cloud Run
-gcloud run deploy order --image=$ORDER_IMAGE --set-env-vars=SENTRY_DSN=$SENTRY_DSN,VERSION=$VERSION,STAGE=$STAGE,WAVEFRONT_TOKEN=$WAVEFRONT_TOKEN,WAVEFRONT_URL=$WAVEFRONT_URL,MONGO_USERNAME=$MONGO_USERNAME,MONGO_PASSWORD=$MONGO_PASSWORD,MONGO_HOSTNAME=$MONGO_HOSTNAME,PAYMENT_URL=$PAYMENT_URL,SHIPPING_URL=$SHIPMENT_URL --labels=author=$AUTHOR,feature=$FEATURE,team=$TEAM,version=$LVERSION,stage=$STAGE,type=$TYPE --allow-unauthenticated
+## The ingress controller uses the host field to determine to which service the request must be routed
+PAYMENT_HOST=payment.default.example.com
+SHIPMENT_HOST=shipment.default.example.com
+
+## Deploy the service to Google Cloud Run for Anthos
+gcloud run deploy order --namespace=default --image=$ORDER_IMAGE --platform=gke --cluster=$CLUSTER --cluster-location=$CLUSTER_LOCATION --connectivity=external --set-env-vars=SENTRY_DSN=$SENTRY_DSN,VERSION=$VERSION,STAGE=$STAGE,WAVEFRONT_TOKEN=$WAVEFRONT_TOKEN,WAVEFRONT_URL=$WAVEFRONT_URL,MONGO_USERNAME=$MONGO_USERNAME,MONGO_PASSWORD=$MONGO_PASSWORD,MONGO_HOSTNAME=$MONGO_HOSTNAME,PAYMENT_URL=$PAYMENT_URL,SHIPMENT_URL=$SHIPMENT_URL,PAYMENT_HOST=$PAYMENT_HOST,SHIPMENT_HOST=$SHIPMENT_HOST --labels=author=$AUTHOR,feature=$FEATURE,team=$TEAM,version=$LVERSION,stage=$STAGE,type=$TYPE
 
 ## Update the order shipment service with the URL of the order service
 ORDER_URL=`gcloud run services describe order --format 'value(status.address.url)'`/order/update
 gcloud run deploy shipment --image=$SHIPMENT_IMAGE --update-env-vars ORDER_URL=$ORDER_URL
 ```
 
-## Step 6: Test the services
+## Step 7: Test the services
 
 After the deployments and updates are completes, you can use the below cURL commands to test the functions.
 
-### Step 6.1: Test the Payment service
+### Step 7.1: Test the Payment service
 
 ```bash
 URL=`gcloud run services describe payment --format 'value(status.address.url)'`
@@ -377,6 +425,7 @@ URL=`gcloud run services describe payment --format 'value(status.address.url)'`
 curl --request POST \
   --url $URL/pay \
   --header 'content-type: application/json' \
+  --header 'host: payment.default.example.com' \
   --data '{
 	"metadata": {
 		"domain": "payment",
@@ -400,6 +449,7 @@ curl --request POST \
 curl --request POST \
   --url $URL/pay \
   --header 'content-type: application/json' \
+  --header 'host: payment.default.example.com' \
   --data '{
 	"metadata": {
 		"domain": "payment",
@@ -420,7 +470,7 @@ curl --request POST \
 }'
 ```
 
-### Step 6.2: Test the Shipment service
+### Step 7.2: Test the Shipment service
 
 ```bash
 URL=`gcloud run services describe shipment --format 'value(status.address.url)'`
@@ -431,6 +481,7 @@ URL=`gcloud run services describe shipment --format 'value(status.address.url)'`
 curl --request POST \
   --url $URL/ship \
   --header 'content-type: application/json' \
+  --header 'host: shipment.default.example.com' \
   --data '{
 	"metadata": {
 		"domain": "shipment",
@@ -445,7 +496,7 @@ curl --request POST \
 }'
 ```
 
-### Step 6.3: Test the Cart service
+### Step 7.3: Test the Cart service
 
 ```bash
 URL=`gcloud run services describe cart --format 'value(status.address.url)'`
@@ -454,12 +505,14 @@ URL=`gcloud run services describe cart --format 'value(status.address.url)'`
 ```bash
 ## Get all carts
 curl --request GET \
+  --header 'host: cart.default.example.com' \
   --url $URL/cart/all
 
 ## Add item to cart
 curl --request POST \
   --url $URL/cart/item/add/499fd0be-63c1-4a24-bcdf-46694671b77f \
   --header 'content-type: application/json' \
+  --header 'host: cart.default.example.com' \
   --data '{
     "description": "fitband for any age ",
     "itemid": "sdfsdfsfs",
@@ -469,7 +522,7 @@ curl --request POST \
 }'
 ```
 
-### Step 6.4: Test the Catalog service
+### Step 7.4: Test the Catalog service
 
 ```bash
 URL=`gcloud run services describe catalog --format 'value(status.address.url)'`
@@ -478,12 +531,14 @@ URL=`gcloud run services describe catalog --format 'value(status.address.url)'`
 ```bash
 ## Get product details
 curl --request GET \
+  --header 'host: catalog.default.example.com' \
   --url $URL/products/050b7bdc-e993-4884-bb60-18323f9278dd
 
 ## Add new product
 curl --request POST \
   --url $URL/product \
   --header 'content-type: application/json' \
+  --header 'host: catalog.default.example.com' \
   --data '{
     "name": "Tracker",
     "shortDescription": "Limited Edition Tracker",
@@ -498,7 +553,7 @@ curl --request POST \
 }'
 ```
 
-### Step 6.5: Test the Order service
+### Step 7.5: Test the Order service
 
 ```bash
 URL=`gcloud run services describe order --format 'value(status.address.url)'`
@@ -509,6 +564,7 @@ URL=`gcloud run services describe order --format 'value(status.address.url)'`
 curl --request POST \
   --url $URL/order/add/bbuttner0 \
   --header 'content-type: application/json' \
+  --header 'host: order.default.example.com' \
   --data '{
   "_id": "fa21f430-310a-4077-8280-2f091804e280",
   "status": "pending payment",
@@ -550,10 +606,11 @@ curl --request POST \
 
 ## Get all orders
 curl --request GET \
+  --header 'host: order.default.example.com' \
   --url $URL/order/all
 ```
 
-### Step 6.6: Test the User service
+### Step 7.6: Test the User service
 
 ```bash
 URL=`gcloud run services describe user --format 'value(status.address.url)'`
@@ -564,6 +621,7 @@ URL=`gcloud run services describe user --format 'value(status.address.url)'`
 curl --request POST \
   --url $URL/register \
   --header 'content-type: application/json' \
+  --header 'host: user.default.example.com' \
   --data '{
     "username":"peterp",
     "password":"vmware1!",
@@ -576,13 +634,14 @@ curl --request POST \
 curl --request POST \
   --url $URL/login \
   --header 'content-type: application/json' \
+  --header 'host: user.default.example.com' \
   --data '{
 	"username": "peterp",
 	"password": "vmware1!"
 }'
 ```
 
-## Step 7: Clean up
+## Step 8: Clean up
 
 To remove all the functions, you can run:
 
@@ -593,6 +652,7 @@ gcloud run service delete cart
 gcloud run service delete catalog
 gcloud run service delete order
 gcloud run service delete user
+gcloud container clusters delete acmeserverless
 ```
 
 The MongoDB Atlas cluster won't charge you, assuming you haven't selected any add-ons during the creation, but if you still want to delete all the data you can delete the project from the "**Project -> Settings**" menu.
